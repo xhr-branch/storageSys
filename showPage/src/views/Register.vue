@@ -6,6 +6,9 @@
         <el-form-item prop="username">
           <el-input v-model="registerForm.username" prefix-icon="el-icon-user" placeholder="请输入用户名"></el-input>
         </el-form-item>
+        <el-form-item prop="email">
+          <el-input v-model="registerForm.email" prefix-icon="el-icon-message" placeholder="请输入邮箱"></el-input>
+        </el-form-item>
         <el-form-item prop="password">
           <el-input v-model="registerForm.password" prefix-icon="el-icon-lock" type="password" placeholder="请输入密码"></el-input>
         </el-form-item>
@@ -13,7 +16,7 @@
           <el-input v-model="registerForm.confirmPassword" prefix-icon="el-icon-lock" type="password" placeholder="请确认密码"></el-input>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleRegister" class="register-button">注册</el-button>
+          <el-button type="primary" @click="handleRegister" class="register-button" :loading="loading">注册</el-button>
           <el-button @click="goToLogin">返回登录</el-button>
         </el-form-item>
       </el-form>
@@ -22,6 +25,9 @@
 </template>
 
 <script>
+import axios from 'axios'
+import { ElMessage } from 'element-plus'
+
 export default {
   name: 'UserRegister',
   data() {
@@ -35,6 +41,7 @@ export default {
     return {
       registerForm: {
         username: '',
+        email: '',
         password: '',
         confirmPassword: ''
       },
@@ -42,6 +49,10 @@ export default {
         username: [
           { required: true, message: '请输入用户名', trigger: 'blur' },
           { min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
+        ],
+        email: [
+          { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+          { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
         ],
         password: [
           { required: true, message: '请输入密码', trigger: 'blur' },
@@ -51,22 +62,30 @@ export default {
           { required: true, message: '请再次输入密码', trigger: 'blur' },
           { validator: validatePass2, trigger: 'blur' }
         ]
-      }
+      },
+      loading: false
     }
   },
   methods: {
-    handleRegister() {
-      this.$refs.registerForm.validate(async (valid) => {
-        if (valid) {
-          try {
-            // TODO: 实现注册逻辑
-            this.$message.success('注册成功')
-            this.$router.push('/login')
-          } catch (error) {
-            this.$message.error('注册失败')
-          }
+    async handleRegister() {
+      try {
+        await this.$refs.registerForm.validate()
+        this.loading = true
+
+        const { confirmPassword, ...registerData } = this.registerForm
+        await axios.post('http://localhost:8080/api/register', registerData)
+        
+        ElMessage.success('注册成功')
+        this.$router.push('/login')
+      } catch (error) {
+        if (error.response?.data?.error) {
+          ElMessage.error(error.response.data.error)
+        } else {
+          ElMessage.error('注册失败，请稍后重试')
         }
-      })
+      } finally {
+        this.loading = false
+      }
     },
     goToLogin() {
       this.$router.push('/login')

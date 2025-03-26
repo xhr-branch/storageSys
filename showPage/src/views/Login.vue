@@ -10,7 +10,7 @@
           <el-input v-model="loginForm.password" prefix-icon="el-icon-lock" type="password" placeholder="请输入密码"></el-input>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleLogin" class="login-button">登录</el-button>
+          <el-button type="primary" @click="handleLogin" class="login-button" :loading="loading">登录</el-button>
           <el-button @click="goToRegister">注册账号</el-button>
         </el-form-item>
       </el-form>
@@ -19,6 +19,9 @@
 </template>
 
 <script>
+import axios from 'axios'
+import { ElMessage } from 'element-plus'
+
 export default {
   name: 'UserLogin',
   data() {
@@ -30,29 +33,36 @@ export default {
       loginRules: {
         username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
         password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
-      }
+      },
+      loading: false
     }
   },
   methods: {
-    handleLogin() {
-      this.$refs.loginForm.validate(async (valid) => {
-        if (valid) {
-          try {
-            // TODO: 实现登录逻辑，这里模拟登录成功
-            // 实际项目中应该调用后端API进行验证
-            const token = 'mock-token-' + Date.now()
-            localStorage.setItem('token', token)
-            localStorage.setItem('username', this.loginForm.username)
+    async handleLogin() {
+      try {
+        await this.$refs.loginForm.validate()
+        this.loading = true
 
-            this.$message.success('登录成功')
-            // 获取重定向地址，如果没有则返回首页
-            const redirect = this.$route.query.redirect || '/'
-            this.$router.push(redirect)
-          } catch {
-            this.$message.error('登录失败')
-          }
+        const response = await axios.post('http://localhost:8080/api/login', this.loginForm)
+        
+        if (response.data.token) {
+          localStorage.setItem('token', response.data.token)
+          localStorage.setItem('user', JSON.stringify(response.data.user))
+          ElMessage.success('登录成功')
+          
+          // 获取重定向地址，如果没有则返回首页
+          const redirect = this.$route.query.redirect || '/'
+          this.$router.push(redirect)
         }
-      })
+      } catch (error) {
+        if (error.response?.data?.error) {
+          ElMessage.error(error.response.data.error)
+        } else {
+          ElMessage.error('登录失败，请检查用户名和密码')
+        }
+      } finally {
+        this.loading = false
+      }
     },
     goToRegister() {
       this.$router.push('/register')
