@@ -6,7 +6,6 @@
 
 - 用户注册
 - 用户登录
-- JWT 认证
 - 用户信息获取
 - 跨域支持
 
@@ -16,7 +15,6 @@
 - Gin Web 框架
 - GORM ORM
 - MySQL 数据库
-- JWT 认证
 
 ## 安装和运行
 
@@ -26,16 +24,12 @@
    ```bash
    go mod tidy
    ```
-4. 配置环境变量：
-   - 复制 `.env.example` 为 `.env`
-   - 修改数据库配置和 JWT 密钥
-
-5. 创建 MySQL 数据库：
+4. 创建 MySQL 数据库：
    ```sql
    CREATE DATABASE storage_system;
    ```
 
-6. 运行项目：
+5. 运行项目：
    ```bash
    go run main.go
    ```
