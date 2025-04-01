@@ -40,18 +40,15 @@ func main() {
 		})
 	})
 
-	// 公开路由
-	public := r.Group("/api")
+	// API路由
+	api := r.Group("/api")
 	{
-		public.POST("/register", controllers.Register)
-		public.POST("/login", controllers.Login)
-	}
-
-	// 需要认证的路由
-	protected := r.Group("/api")
-	protected.Use(middleware.AuthMiddleware())
-	{
-		protected.GET("/user/profile", controllers.GetUserProfile)
+		// 用户认证相关路由
+		api.POST("/register", controllers.Register)
+		api.POST("/login", controllers.Login)
+		
+		// 用户信息相关路由
+		api.GET("/user/profile", controllers.GetUserProfile)
 	}
 
 	// 启动服务器
