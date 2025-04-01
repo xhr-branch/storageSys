@@ -37,31 +37,30 @@
 </template>
 
 <script>
+import { computed } from 'vue'
+import { useStore } from 'vuex'
+import { useRouter } from 'vue-router'
+
 export default {
   name: 'NavBar',
-  data() {
-    return {
-      isLoggedIn: false,
-      username: ''
-    }
-  },
-  created() {
-    const token = localStorage.getItem('token')
-    const username = localStorage.getItem('username')
-    if (token && username) {
-      this.isLoggedIn = true
-      this.username = username
-    }
-  },
-  methods: {
-    handleCommand(command) {
+  setup() {
+    const store = useStore()
+    const router = useRouter()
+
+    const isLoggedIn = computed(() => store.getters.isAuthenticated)
+    const username = computed(() => store.state.user?.username || '')
+
+    const handleCommand = (command) => {
       if (command === 'logout') {
-        localStorage.removeItem('token')
-        localStorage.removeItem('username')
-        this.isLoggedIn = false
-        this.username = ''
-        this.$router.push('/login')
+        store.dispatch('logout')
+        router.push('/login')
       }
+    }
+
+    return {
+      isLoggedIn,
+      username,
+      handleCommand
     }
   }
 }
